@@ -1,19 +1,16 @@
 import torch
 import torch.optim as optim
-from torch.utils.data import DataLoader, TensorDataset
+from torch_geometric.loader import DataLoader
 from torch.nn.utils import parameters_to_vector, vector_to_parameters
 
-import os
 import argparse
-import numpy as np
 from tqdm.auto import tqdm
 
-from opc import Evaluator, PolymerDataset
-from model import MLP
-from dataset import TestDevPolymer
+from evaluate import Evaluator
 
-from molfeat.trans.pretrained.hf_transformers import PretrainedHFTransformer
-from molfeat.trans.pretrained import PretrainedDGLTransformer
+from opc import PygPolymerDataset
+from model import GNN
+from dataset import TestDevPolymer
 
 criterion = torch.nn.L1Loss()
 
@@ -24,20 +21,24 @@ def seed_torch(seed=0):
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
 
-
 def training(model, device, loader, optimizer):
     model.train()
 
     # for step, batch in enumerate(tqdm(loader, desc="Iteration")):
     for step, batch in enumerate(loader):
-        x, y = batch
-        x = x.to(device).to(torch.float32)
-        y = y.to(device).to(torch.float32)
-        pred = model(x)
-        is_valid = ~torch.isnan(y)
-        loss = criterion(pred[is_valid], y[is_valid])
-        loss.backward()
-        optimizer.step()
+        batch = batch.to(device)
+
+        if batch.x.shape[0] == 1 or batch.batch[-1] == 0:
+            pass
+        else:
+            pred = model(batch)
+            optimizer.zero_grad()
+            is_valid = ~torch.isnan(batch.y)
+            loss = criterion(
+                pred.to(torch.float32)[is_valid], batch.y.to(torch.float32)[is_valid]
+            )
+            loss.backward()
+            optimizer.step()
 
 
 def validate(model, device, loader, evaluator, task_weight):
@@ -46,12 +47,16 @@ def validate(model, device, loader, evaluator, task_weight):
     y_pred = []
 
     for step, batch in enumerate(loader):
-        x, y = batch
-        x = x.to(device).to(torch.float32)
-        y = y.to(device).to(torch.float32)
-        pred = model(x)
-        y_true.append(y.detach().cpu())
-        y_pred.append(pred.detach().cpu())
+        batch = batch.to(device)
+
+        if batch.x.shape[0] == 1:
+            pass
+        else:
+            with torch.no_grad():
+                pred = model(batch)
+
+            y_true.append(batch.y.detach().cpu())
+            y_pred.append(pred.detach().cpu())
 
     y_true = torch.cat(y_true, dim=0).numpy()
     y_pred = torch.cat(y_pred, dim=0).numpy()
@@ -61,24 +66,55 @@ def validate(model, device, loader, evaluator, task_weight):
     return evaluator.validate(input_dict)
 
 
+def save_results(model, device, loader, filename="result.csv"):
+    from opc.utils.features import task_properties
+
+    task_properties = task_properties["prediction"]
+    model.eval()
+    y_pred = []
+
+    for step, batch in enumerate(loader):
+        batch = batch.to(device)
+        if batch.x.shape[0] == 1:
+            pass
+        else:
+            with torch.no_grad():
+                pred = model(batch)
+            y_pred.append(pred.detach().cpu())
+    y_pred = torch.cat(y_pred, dim=0).numpy()
+    df_pred = pd.DataFrame(y_pred, columns=task_properties)
+    df_pred.to_csv(filename, index=False, header=False)
+    print(f"Predictions saved to {filename}")
+
+
 def main(seed):
     # Training settings
     parser = argparse.ArgumentParser(
-        description="Pretrained baselines for polymer property prediction"
+        description="GNN baselines for polymer property prediction"
     )
     parser.add_argument(
         "--device", type=int, default=0, help="which gpu to use if any (default: 0)"
     )
     parser.add_argument(
-        "--method",
+        "--gnn",
         type=str,
-        default="ChemGPT",
+        default="gin-virtual",
+        help="GNN gin, gin-virtual, or gcn, or gcn-virtual (default: gin-virtual)",
+    )
+    parser.add_argument(
+        "--drop_ratio", type=float, default=0.5, help="dropout ratio (default: 0.5)"
+    )
+    parser.add_argument(
+        "--num_layer",
+        type=int,
+        default=5,
+        help="number of GNN message passing layers (default: 5)",
     )
     parser.add_argument(
         "--emb_dim",
         type=int,
         default=300,
-        help="dimensionality of hidden units (default: 300)",
+        help="dimensionality of hidden units in GNNs (default: 300)",
     )
     parser.add_argument(
         "--batch_size",
@@ -115,91 +151,66 @@ def main(seed):
 
     ### automatic dataloading and splitting
 
-    dataset = PolymerDataset(name="prediction", root="data_smiles", transform="SMILES")
-
-    split_idx = dataset.get_idx_split(to_list=True)
+    dataset = PygPolymerDataset(name="prediction", root="data_pyg")
+    split_idx = dataset.get_idx_split()
     train_weight = dataset.get_task_weight(split_idx["train"])
     valid_weight = dataset.get_task_weight(split_idx["valid"])
-
-    ### processing features
-    if args.method == "GPT2":
-        transformer = PretrainedHFTransformer(
-            kind="GPT2-Zinc480M-87M", notation="smiles", dtype=float
-        )
-    elif args.method == "Roberta":
-        transformer = PretrainedHFTransformer(
-            kind="Roberta-Zinc480M-102M", notation="smiles", dtype=float
-        )
-    elif args.method == "ChemGPT":
-        transformer = PretrainedHFTransformer(
-            kind="ChemGPT-19M", notation="selfies", dtype=float
-        )
-    elif args.method == "MolT5":
-        transformer = PretrainedHFTransformer(
-            kind="MolT5", notation="smiles", dtype=float
-        )
-    elif args.method == "edgepred":
-        transformer = PretrainedDGLTransformer(
-            kind="gin_supervised_edgepred", dtype=float
-        )
-    elif args.method == "masking":
-        transformer = PretrainedDGLTransformer(
-            kind="gin_supervised_masking", dtype=float
-        )
-    elif args.method == "contextpred":
-        transformer = PretrainedDGLTransformer(
-            kind="gin_supervised_contextpred", dtype=float
-        )
-    else:
-        raise ValueError("Invalid method")
-
-    train_smiles, train_y = dataset[split_idx["train"]]
-    valid_smiles, valid_y = dataset[split_idx["valid"]]
-
-    # check if exists cached file
-    if os.path.exists(f"./cached/{args.method}.npz"):
-        print("loading cached file:", f"./cached/{args.method}.npz")
-        data = np.load(f"./cached/{args.method}.npz")
-        train_feats, valid_feats = (
-            data["train_feats"],
-            data["valid_feats"],
-        )
-    else:
-        print(
-            f"processing features for {args.method} the first time. It may take a while..."
-        )
-        train_feats, valid_feats = (
-            transformer([smiles.replace("*", "C") for smiles in train_smiles]),
-            transformer([smiles.replace("*", "C") for smiles in valid_smiles]),
-        )
-        os.makedirs("./cached", exist_ok=True)
-        np.savez(
-            f"./cached/{args.method}.npz",
-            train_feats=train_feats,
-            valid_feats=valid_feats,
-        )
-
-    input_dim = train_feats.shape[1]
 
     ### automatic evaluator. takes dataset name as input
     evaluator = Evaluator("prediction")
 
     train_loader = DataLoader(
-        TensorDataset(torch.from_numpy(train_feats), torch.stack(train_y, dim=0)),
+        dataset[split_idx["train"]],
         batch_size=args.batch_size,
         shuffle=True,
         num_workers=args.num_workers,
     )
     valid_loader = DataLoader(
-        TensorDataset(torch.from_numpy(valid_feats), torch.stack(valid_y, dim=0)),
+        dataset[split_idx["valid"]],
         batch_size=args.batch_size,
         shuffle=False,
         num_workers=args.num_workers,
     )
 
-    model = MLP(
-        input_dim, hidden_features=4 * args.emb_dim, out_features=dataset.num_tasks
-    ).to(device)
+    if args.gnn == "gin":
+        model = GNN(
+            gnn_type="gin",
+            num_task=dataset.num_tasks,
+            num_layer=args.num_layer,
+            emb_dim=args.emb_dim,
+            drop_ratio=args.drop_ratio,
+            virtual_node=False,
+        ).to(device)
+    elif args.gnn == "gin-virtual":
+        model = GNN(
+            gnn_type="gin",
+            num_task=dataset.num_tasks,
+            num_layer=args.num_layer,
+            emb_dim=args.emb_dim,
+            drop_ratio=args.drop_ratio,
+            virtual_node=True,
+        ).to(device)
+    elif args.gnn == "gcn":
+        model = GNN(
+            gnn_type="gcn",
+            num_task=dataset.num_tasks,
+            num_layer=args.num_layer,
+            emb_dim=args.emb_dim,
+            drop_ratio=args.drop_ratio,
+            virtual_node=False,
+        ).to(device)
+    elif args.gnn == "gcn-virtual":
+        model = GNN(
+            gnn_type="gcn",
+            num_task=dataset.num_tasks,
+            num_layer=args.num_layer,
+            emb_dim=args.emb_dim,
+            drop_ratio=args.drop_ratio,
+            virtual_node=True,
+        ).to(device)
+    else:
+        raise ValueError("Invalid GNN type")
+
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     best_train, best_valid, best_params = None, None, None
@@ -207,27 +218,34 @@ def main(seed):
     print("Start training...")
     for epoch in range(args.epochs):
         training(model, device, train_loader, optimizer)
-        valid_perf = validate(model, device, valid_loader, evaluator, valid_weight)
+        valid_perf, valid_perf_lg = validate(model, device, valid_loader, evaluator, valid_weight)
         if epoch == 0 or valid_perf[dataset.eval_metric] < best_valid:
-            train_perf = validate(model, device, train_loader, evaluator, train_weight)
+            train_perf, train_perf_lg = validate(model, device, train_loader, evaluator, train_weight)
             best_params = parameters_to_vector(model.parameters())
             best_valid = valid_perf[dataset.eval_metric]
+            best_valid_lg = valid_perf_lg[dataset.eval_metric]
+            #print(best_valid)
+            #print(best_valid_lg)
             best_train = train_perf[dataset.eval_metric]
+            best_train_lg = train_perf_lg[dataset.eval_metric]
+
             best_epoch = epoch
 
             if not args.no_print:
                 print(
-                    "Update Epoch {}: best_train: {:.4f} best_valid: {:.4f}".format(
-                        epoch, best_train, best_valid
+                    "Update Epoch {}: best_train: {:.4f}, best_train_lg: {:.4f}, best_valid: {:.4f}, best_valid_lg: {:.4f}".format(
+                        epoch, best_train, best_train_lg, best_valid, best_valid_lg
                     )
                 )
         else:
             if not args.no_print:
                 print(
-                    "Epoch {}: best_valid: {:.4f}, current_valid: {:.4f}, patience: {}/{}".format(
+                    "Epoch {}: best_valid: {:.4f}, best_valid_lg: {:.4f}, current_valid: {:.4f}, current_valid_lg: {:.4f}, patience: {}/{}".format(
                         epoch,
                         best_valid,
+                        best_valid_lg,
                         valid_perf[dataset.eval_metric],
+                        valid_perf_lg[dataset.eval_metric],
                         epoch - best_epoch,
                         args.patience,
                     )
@@ -236,27 +254,31 @@ def main(seed):
                 break
 
     print(
-        "Finished. \n Best validation epoch {} with metric {}, train {:.4f}, valid {:.4f}".format(
-            best_epoch, dataset.eval_metric, best_train, best_valid
+        "Finished. \n Best validation epoch {} with metric {}, train {:.4f}, train_lg {:.4f}, valid {:.4f}, valid_lg {:.4f}".format(
+            best_epoch, dataset.eval_metric, best_train, best_train_lg, best_valid, best_valid_lg
         )
     )
 
     vector_to_parameters(best_params, model.parameters())
 
-    if seed == 0:
-        test_dev = TestDevPolymer(name="prediction")
-        test_feature, smiles_list, target_list = test_dev.prepare_feature(
-            transform="SMILES"
-        )
-        test_feature = transformer([smiles.replace("*", "C") for smiles in test_feature])
-        save_prediction(model, device, test_feature, smiles_list, target_list, out_file=f"out-{args.method}.json")
+    #test_dev = TestDevPolymer(name="prediction")
+    #test_feature, smiles_list, target_list = test_dev.prepare_feature(
+    #    transform="PyG"
+    #)
+    #path = 'out_cached'
+    #ifEx = os.path.exists(path)
+    #if not ifEx:
+    #    os.makedirs(path)
+    #save_prediction(model, device, test_feature, smiles_list, target_list, out_file=f"out_cached/out-{args.gnn}-{seed}.json")
 
     return (
-        args.method,
+        args.gnn,
         "prediction",
         dataset.eval_metric,
         best_train,
+        best_train_lg,
         best_valid,
+        best_valid_lg,
         best_epoch,
     )
 
@@ -266,7 +288,6 @@ def save_prediction(model, device, test_feature, smiles_list, target_list, out_f
     task_properties = task_properties['prediction']
     task_count = {}
     pred_json = []
-    test_feature = torch.tensor(test_feature, dtype=torch.float32)
     loader = DataLoader(test_feature, batch_size=1, shuffle=False)
     for idx, batch in enumerate(loader):
         batch = batch.to(device)
@@ -275,8 +296,6 @@ def save_prediction(model, device, test_feature, smiles_list, target_list, out_f
         entry = {"SMILES": smiles_list[idx]}
         for i, target in enumerate(targets):
             pred_value = y_pred.detach().cpu().numpy()[0, task_properties.index(target)]
-            print('y_pred', y_pred, y_pred.shape)
-            print('pred_value', pred_value)
             entry[target] = float(pred_value)
             task_count[target] = task_count.get(target, 0) + 1
         pred_json.append(entry)
@@ -293,6 +312,7 @@ def save_prediction(model, device, test_feature, smiles_list, target_list, out_f
         f"Predictions saved to {out_file}, to be evaluated with weights {task_weight} for each task."
     )
 
+
 if __name__ == "__main__":
     import os
     import pandas as pd
@@ -303,21 +323,25 @@ if __name__ == "__main__":
         "seed": [],
         "metric": [],
         "train": [],
+        "train_lg": [],
         "valid": [],
+        "valid_lg": [],
         "epoch": [],
     }
     df = pd.DataFrame(results)
 
     for i in range(10):
         seed_torch(i)
-        model, dataset, metric, train, valid, epoch = main(i)
+        model, dataset, metric, train, train_lg, valid, valid_lg, epoch = main(i)
         new_results = {
             "model": model,
             "dataset": dataset,
             "seed": i,
             "metric": metric,
             "train": train,
+            "train_lg": train_lg,
             "valid": valid,
+            "valid_lg": valid_lg,
             "epoch": epoch,
         }
         df = pd.concat([df, pd.DataFrame([new_results])], ignore_index=True)

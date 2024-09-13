@@ -1,5 +1,5 @@
 import numpy as np
-
+import math
 try:
     import torch
 except ImportError:
@@ -7,12 +7,9 @@ except ImportError:
 
 from rdkit import Chem
 from rdkit.Chem import AllChem
-
-from opc.utils.transform import scaling_error
-#from opc.utils.features import task_properties
+from opc.utils.features import task_properties
 
 import random
-import math
 
 dim_reorder = list(range(256))
 random.seed(0)
@@ -41,10 +38,10 @@ class Evaluator:
             name
         )
         self.name = name
-        #self.task_properties = task_properties[name]
+        self.task_properties = task_properties[name]
 
         if "prediction" in self.name:
-            self.num_tasks = 1
+            self.num_tasks = len(self.task_properties)
             self.eval_metric = "wmae"
         else:
             self.num_tasks = 256
@@ -190,69 +187,37 @@ class Evaluator:
 
     def _eval_wmae(self, true, pred, task_weight):
         mae_list = []
+        mae_lg_list = []
+        #print(true)
+        #print(pred)
 
         for i in range(true.shape[1]):
             is_labeled = true[:, i] == true[:, i]
             weight = float(task_weight[i])
+
             if is_labeled.sum() == 0:
                 continue
             else:
+                #print(true[is_labeled,i])
                 mae_list.append(
                     np.mean(
-                        scaling_error(
-                            np.abs(true[is_labeled, i] - pred[is_labeled, i]), i
-                        )
-                    )
-                    * weight
+                        np.abs(true[is_labeled, i] - pred[is_labeled, i]), i
+                    )* weight
                 )
+
+                mae_lg_list.append(
+                     np.mean(
+                        np.abs(np.log(true[is_labeled, i]) - np.log(pred[is_labeled, i])), i
+                    )* weight
+                )
+                print(mae_list)
+                print(mae_lg_list)
+                
+                    
         if len(mae_list) == 0:
             raise RuntimeError("No labels")
+        return {"wmae": sum(mae_list) / len(task_weight)},{"wmae": sum(mae_lg_list) / len(task_weight)}
 
-        return {"wmae": sum(mae_list) / len(task_weight)}
-    
-    def _eval_lgmae(self, true, pred, task_weight):
-        mae_list = []
-
-        for i in range(true.shape[1]):
-            is_labeled = true[:, i] == true[:, i]
-            weight = float(task_weight[i])
-            if is_labeled.sum() == 0:
-                continue
-            else:
-                mae_list.append(
-                    np.mean(
-                        scaling_error(
-                            np.abs(math.log(true[is_labeled, i]) - math.log(pred[is_labeled, i])), i
-                        )
-                    )
-                    * weight
-                )
-        if len(mae_list) == 0:
-            raise RuntimeError("No labels")
-
-        return {"lgwmae": sum(mae_list) / len(task_weight)}
-
-    def _eval_jaccard(self, true_mol, generate_mol):
-        fps_true = [
-            feature_extraction(true_mol[idx])
-            for idx, m in enumerate(generate_mol)
-            if m is not None
-        ]
-        fps_generate = [feature_extraction(m) for m in generate_mol if m is not None]
-
-        invalid_num = len(generate_mol) - len(fps_generate)
-
-        intersection = [
-            np.sum(np.array(fps_true[i]) & np.array(fps_generate[i]))
-            for i in range(len(fps_true))
-        ] + [0] * invalid_num
-        union = [
-            np.sum(np.array(fps_true[i]) | np.array(fps_generate[i]))
-            for i in range(len(fps_true))
-        ] + [1] * invalid_num
-
-        jarccard = np.mean(np.array(intersection) / np.array(union))
-        return {"jaccard": jarccard}
 
 
 if __name__ == "__main__":

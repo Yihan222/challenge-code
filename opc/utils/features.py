@@ -1,16 +1,6 @@
 task_properties = {
     "prediction": [
-        "Tg",
-        "FFV",
-        "Tc",
-        "Density",
-        "Rg",
-        "He",
-        "H2",
-        "O2",
-        "N2",
         "CO2",
-        "CH4",
     ],
     "generation": None,
 }

@@ -77,7 +77,7 @@ def similarity_split(train_df, test_dev, train_ratio=0.8):
 
     return train_idx.tolist(), valid_idx.tolist(), []
 
-def scaffold_split(train_df, train_ratio=0.8, valid_ratio=None, test_ratio=None):
+def scaffold_split(train_df, train_ratio=0.6, valid_ratio=0.1, test_ratio=0.3):
     """Splits a dataframe of molecules into scaffold-based clusters."""
     # Get smiles from the dataframe
     train_smiles_list = train_df["SMILES"]

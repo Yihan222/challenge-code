@@ -6,16 +6,16 @@ import pandas as pd
 
 import torch
 from torch_geometric.data import InMemoryDataset, Data
+from sklearn.model_selection import train_test_split
 
 from opc.utils.mol import smiles2graph
 from opc.utils.split import scaffold_split, similarity_split
-from opc.utils.features import task_properties
-from opc.utils.url import download_url
+#from opc.utils.features import task_properties
 
 
 class PygPolymerDataset(InMemoryDataset):
     def __init__(
-        self, name="prediction", root="raw_data", transform=None, pre_transform=None
+        self, name="prediction", root="data_pyg",repeat_times = 1, task_name = 'O2',transform=None, pre_transform=None
     ):
         """
         - name (str): name of the dataset == prediction or generation
@@ -24,10 +24,12 @@ class PygPolymerDataset(InMemoryDataset):
         """
 
         self.name = name
-        self.root = osp.join(root, name)
+        self.repeat_times = repeat_times
+        self.task_properties = [task_name]
+        self.task_type = self.task_properties[0]
+        self.fileroot = "{}_raw_{}".format(self.task_type,self.repeat_times)
+        self.root = osp.join(root, name, self.task_type, self.fileroot)
 
-        self.task_type = name
-        self.task_properties = task_properties[name]
         if self.task_properties is None:
             self.num_tasks = None
             self.eval_metric = "jaccard"
@@ -35,42 +37,39 @@ class PygPolymerDataset(InMemoryDataset):
             self.num_tasks = len(self.task_properties)
             self.eval_metric = "wmae"
 
-        self.url = f"https://github.com/open-polymer-challenge/data-dev/raw/main/{name}/data_dev.csv.gz"
-
         super(PygPolymerDataset, self).__init__(self.root, transform, pre_transform)
         self.data, self.slices = torch.load(self.processed_paths[0])
+  
 
-    def get_idx_split(self, split_type="scaffold"):
+    def get_idx_split(self, split_type="random"):
         path = osp.join(self.root, "split", split_type)
-        if os.path.isfile(os.path.join(path, "split_dict.pt")):
-            return torch.load(os.path.join(path, "split_dict.pt"))
-        else:
-            if split_type == "scaffold":
-                data_df = pd.read_csv(osp.join(self.raw_dir, "data_dev.csv.gz"))
-                train_idx, valid_idx, test_idx = scaffold_split(data_df, train_ratio=0.8, valid_ratio=None)
-                train_idx = torch.tensor(train_idx, dtype=torch.long)
-                valid_idx = torch.tensor(valid_idx, dtype=torch.long)
-                test_idx = torch.tensor(test_idx, dtype=torch.long)
-            elif split_type == "similarity":
-                data_df = pd.read_csv(osp.join(self.raw_dir, "data_dev.csv.gz"))
-                if not os.path.exists('test_dev.json'):
-                    raise FileNotFoundError(f"Similarity based splitting requires test_dev.json in {os.getcwd()}")
-                with open('test_dev.json', 'r') as file:
-                    test_dev = json.load(file)
-                    test_dev = pd.json_normalize(test_dev)
-                train_idx, valid_idx, test_idx = similarity_split(data_df, test_dev, train_ratio=0.9)
-                train_idx = torch.tensor(train_idx, dtype=torch.long)
-                valid_idx = torch.tensor(valid_idx, dtype=torch.long)
-                test_idx = torch.tensor(test_idx, dtype=torch.long)
-            else:
-                raise ValueError("Invalid split type")
+        if not os.path.exists(path):
+            os.makedirs(path)
+        try: 
+            train_idx = pd.read_csv(osp.join(path, 'train.csv.gz'), compression='gzip', header = None).values.T[0]
+            valid_idx = pd.read_csv(osp.join(path, 'valid.csv.gz'), compression='gzip', header = None).values.T[0]
+            test_idx = pd.read_csv(osp.join(path, 'test.csv.gz'), compression='gzip', header = None).values.T[0]
+        except:
+            raw_file_name = "{}_raw.csv".format(self.task_type)
+            csv_file = osp.join(self.root,raw_file_name)
+            data_df = pd.read_csv(csv_file)
+            #print(len(data_df))
+            #print('Splitting with random seed 42 and ratio 0.6/0.1/0.3')
+            if split_type=='scaffold':
+                train_idx, valid_idx, test_idx = scaffold_split(data_df, train_ratio=0.6, valid_ratio=0.1,test_ratio=0.3)
+            elif split_type=='random':
+                full_idx = list(range(len(data_df)))
+                train_ratio, valid_ratio, test_ratio = 0.6, 0.1, 0.3
+                train_idx, test_idx, _, _ = train_test_split(full_idx, full_idx, test_size=test_ratio, random_state=42)
+                train_idx, valid_idx, _, _ = train_test_split(train_idx, train_idx, test_size=valid_ratio/(valid_ratio+train_ratio), random_state=42)
+            df_train = pd.DataFrame({'train': train_idx})
+            df_valid = pd.DataFrame({'valid': valid_idx})
+            df_test = pd.DataFrame({'test': test_idx})
+            df_train.to_csv(osp.join(path, 'train.csv.gz'), index=False, header=False, compression="gzip")
+            df_valid.to_csv(osp.join(path, 'valid.csv.gz'), index=False, header=False, compression="gzip")
+            df_test.to_csv(osp.join(path, 'test.csv.gz'), index=False, header=False, compression="gzip")
+        return {'train': torch.tensor(train_idx, dtype = torch.long), 'valid': torch.tensor(valid_idx, dtype = torch.long), 'test': torch.tensor(test_idx, dtype = torch.long)}
 
-            os.makedirs(path, exist_ok=True)
-            torch.save(
-                {"train": train_idx, "valid": valid_idx, "test": test_idx},
-                os.path.join(path, "split_dict.pt"),
-            )
-        return {"train": train_idx, "valid": valid_idx, "test": test_idx}
 
     def get_task_weight(self, ids):
         if self.task_properties is not None:
@@ -83,6 +82,10 @@ class PygPolymerDataset(InMemoryDataset):
                 task_weight = torch.sqrt(
                     1 / torch.tensor(task_weight, dtype=torch.float32)
                 )
+                print('****************2:\n')
+                print(task_weight)
+                print(len(task_weight))
+                print(task_weight / task_weight.sum() * len(task_weight))
                 return task_weight / task_weight.sum() * len(task_weight)
             except Exception as e:
                 print(f"An error occurred: {e}")
@@ -90,18 +93,13 @@ class PygPolymerDataset(InMemoryDataset):
             return None
 
     @property
-    def raw_file_names(self):
-        return ["data_dev.csv.gz"]
-
-    @property
     def processed_file_names(self):
         return ["data_dev_processed.pt"]
 
-    def download(self):
-        download_url(self.url, self.raw_dir)
-
     def process(self):
-        data_df = pd.read_csv(osp.join(self.raw_dir, "data_dev.csv.gz"))
+        raw_file_name = "{}_raw.csv".format(self.task_type)
+        csv_file = osp.join(self.root,raw_file_name)
+        data_df = pd.read_csv(csv_file)
 
         pyg_graph_list = []
         for idx, row in data_df.iterrows():
@@ -132,6 +130,8 @@ class PygPolymerDataset(InMemoryDataset):
             if self.task_properties is not None:
                 y = []
                 for task in self.task_properties:
+                    print(task)
+                    print(row[task])
                     y.append(float(row[task]))
                 g.y = torch.tensor(y, dtype=torch.float32).view(1, -1)
             else:
