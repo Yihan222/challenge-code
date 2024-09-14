@@ -7,7 +7,7 @@ import re
 from typing import Dict, Tuple
 
 from rdkit import Chem
-import datamol as dm
+# import datamol as dm
 from CombineMols.CombineMols import CombineMols
 from rdkit.Chem import Draw
 
@@ -153,6 +153,7 @@ class SmilesRepeat():
         info = self.get_connection_info(combo)
         if not info:
             print("************************** No Star Mark! **************************")
+            print('des_psmiles', des_psmiles)
             return des_psmiles
 
         # add a new bond between two star symbols and discard these two stars
@@ -176,18 +177,28 @@ class SmilesRepeat():
         ori_mol = self.get_mol(ori_psmiles)
         info = self.get_connection_info(ori_mol)
         if not info:
-            print("************************** No Star Mark! **************************")
-            return ''
+            print(f"************************** No Star Mark: {ori_psmiles} **************************")
+            return ori_psmiles
+
         edsmiles = Chem.EditableMol(ori_mol)
         staridx1, staridx2 = 0, -1
         # see if the neighbors of stars are already bonded with each other
         # can not replace star as an edge
-        neighidx1, neighidx2 =   info["neighbor"]["index"][staridx1][0],info["neighbor"]["index"][staridx2][0]
+        neighidx1, neighidx2 = info["neighbor"]["index"][staridx1][0],info["neighbor"]["index"][staridx2][0]
         path = list(info["neighbor"]['path'])
         for i in range(len(path)):
-            if i<len(path)-1:
+            if i < len(path) - 1:
                 if (path[i] == neighidx1 and path[i+1] == neighidx2) or (path[i] == neighidx2 and path[i+1] == neighidx1):
-                    return ''        
+                    # Instead of removing atoms, we'll replace the star atoms with carbon atoms
+                    rwmol = Chem.RWMol(ori_mol)
+                    rwmol.GetAtomWithIdx(info["star"]["index"][staridx1]).SetAtomicNum(6)  # 6 is the atomic number for carbon
+                    rwmol.GetAtomWithIdx(info["star"]["index"][staridx2]).SetAtomicNum(6)
+                    back = rwmol.GetMol()
+                    backSmile = Chem.MolToSmiles(back)
+                    print(f"************************** Warning: Stars replaced with carbon atoms **************************")
+                    print(f"Original SMILES: {ori_psmiles}")
+                    print(f"Resulting SMILES: {backSmile}")
+                    return backSmile
         else:
             edsmiles.AddBond(
                     info["neighbor"]["index"][staridx1][0],
