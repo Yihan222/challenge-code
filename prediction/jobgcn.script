@@ -1,0 +1,15 @@
+#!/bin/bash
+
+##Resource Request
+
+#$ -M zhuyihan5023@outlook.com   # Email address for job notification
+#$ -m abe            # Send mail when job begins, ends and aborts
+#$ -q gpu@ta-a6k-003
+#$ -l gpu=1
+#$ -N polymergcn
+
+conda activate py311
+cd ../../../../../scratch365/yzhu25/challenge-code/prediction/
+fsync $SGE_STDOUT_PATH &
+#python cuda.py
+python gcn.py
