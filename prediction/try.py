@@ -1,42 +1,58 @@
 import pandas as pd
 import numpy as np
 import pickle
-task = 'tg'
-ori = "./data_pyg/prediction/{}/{}_raw_1/{}_raw_120_tk.pkl".format(task,task,task)
-with open(ori, 'rb') as file:
-    ori_polymer_df =pickle.load(file)
-des = './data_pyg/prediction/tg/oneToten_raw_120_tk.pkl'
+import os
+import os.path as osp
+from data_aug import gsplit,rsplit,csvcatg,csvcatr
+from dataset_produce import SmilesRepeat
+import heapq
+_use_ck = True
+_use_param = True
+if __name__=='__main__':
+    m = 'rnn'
+    task = 'tg'
+    # train_rep can be a list of ints/lists, 
+    # int numbers means use single dataset, 
+    # list means use concatenate datasets of different repeating times
+    train_rep = [10]
+    test_rep = [11,12,13,14,15,16,17,18,19,20]
 
-train_idx = pd.read_csv('./rnn/train_idx.csv', header = None).values.T[0]
+    test_num = len(test_rep)
+    
+    for r in train_rep:
+        if isinstance(r,list):
+            _use_concat_train = True
+            # concatenate datasets
+            csvcatr(task,r)
+            r = int('{}{}'.format(r[0],r[-1]))
+        else:
+            _use_concat_train = False
+        if not _use_concat_train:
+            data_path = "./data_pyg/prediction/{}/{}".format(task,r)
+            ck_path = './checkpoints/tg/rnn/{}'.format(r)
+            res_path = "./rnn_res/{}".format(r)
+            df_save_name = "./rnn_res/repeat_{}.csv".format(r)
+            res_csv_name = "./rnn_res/result.csv"
+        else:
+            data_path = "./data_pyg/prediction/{}/concat/{}".format(task,r)
+            ck_path = './checkpoints/tg/rnn/concat/{}'.format(r)
+            res_path = "./rnn_res/concat/{}".format(r)
+            df_save_name = "./rnn_res/concat/repeat_{}.csv".format(r)
+            res_csv_name = "./rnn_res/concat/result.csv"
 
-x_train_list = ori_polymer_df['tk'].iloc[train_idx].values.tolist()
-y_train = ori_polymer_df['tg'].iloc[train_idx]
-#print(y_train)
-# padding training set to maximum length
-input_len = 1587
-for x in x_train_list:
-    x += [0] * (input_len-len(x))
-#print(x_train_list)
-df = pd.DataFrame({'tk': x_train_list,'tg':y_train})
-#print(train_df)
-#train_df = x_train_df.join(y_train)
+        if not osp.exists(ck_path):
+            os.makedirs(ck_path)   
+        if not osp.exists(res_path):
+            os.makedirs(res_path)   
 
-for tr in [2,3,4,5,6,7,8,9,10]:
+        # load train/val datasets
+        train_file = osp.join(data_path,'train','train.pkl')
+        valid_file = osp.join(data_path,'valid','valid.pkl')
 
-    file = "./data_pyg/prediction/{}/{}_raw_{}/{}_raw_120_tk.pkl".format(task,task,tr,task)
-    # import the ori test dataset
-    with open(file, 'rb') as file:
-        polymer_df =pickle.load(file)
-
-    # obtain original training tokens
-    cur_list = polymer_df['tk'].iloc[train_idx].values.tolist()
-    #print(y_train)
-    # padding training set to maximum length
-    for x in cur_list:
-        x += [0] * (input_len-len(x))
-    cur_df = pd.DataFrame({'tk': cur_list,'tg':y_train})
-    df = pd.concat([df,cur_df],axis = 0,ignore_index=True)
-        #print(train_df)
-    print(len(df))
-with open(des,'wb') as file:
-    pickle.dump(df,file)
+        with open(train_file, 'rb') as file:
+            train_polymer_df =pickle.load(file)
+        X_train = train_polymer_df['tk'].values.tolist()
+        y_train = train_polymer_df['tg'].values.tolist()
+        mt = len(X_train[0])
+        print(mt)
+    

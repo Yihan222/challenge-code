@@ -12,4 +12,4 @@ conda activate py311
 cd ../../../../../scratch365/yzhu25/challenge-code/prediction/
 fsync $SGE_STDOUT_PATH &
 #python cuda.py
-python gcn.py
+python gnn.py

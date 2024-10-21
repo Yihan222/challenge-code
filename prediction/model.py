@@ -1,5 +1,9 @@
 import torch
 import torch.nn as nn
+import os.path as osp
+import numpy as np
+import heapq
+import pandas as pd
 from torch_geometric.nn import (
     global_add_pool,
     global_mean_pool,
@@ -41,12 +45,13 @@ class GNN(torch.nn.Module):
     def __init__(
         self,
         num_task,
+        repeat_time,
         num_layer=5,
         emb_dim=300,
         gnn_type="gin",
         virtual_node=True,
         residual=False,
-        drop_ratio=0.5,
+        drop_ratio=0.1,
         JK="last",
         graph_pooling="sum",
     ):
@@ -57,6 +62,7 @@ class GNN(torch.nn.Module):
 
         super(GNN, self).__init__()
 
+        self.repeat_time = repeat_time
         self.num_layer = num_layer
         self.drop_ratio = drop_ratio
         self.JK = JK
@@ -113,8 +119,32 @@ class GNN(torch.nn.Module):
     def forward(self, batched_data):
         h_node = self.gnn_node(batched_data)
         h_graph = self.pool(h_node, batched_data.batch)
+        #self.similarity(h_node,h_graph)
         h_graph = torch.cat([h_graph, batched_data.fp.type_as(h_graph)], dim=1)
         return self.predictor(h_graph)
+
+    # compare similarity of single node representation in the graph with the graph representation
+    def similarity(self, h_node, h_graph):
+        ngsim = []
+        cosi = torch.nn.CosineSimilarity(dim=0)
+        for tensorn in h_node:
+            simi = cosi(tensorn, h_graph[0])
+            ngsim.append(simi.item())
+
+        result = {
+            "gnn_type":'gin_virtual',
+            "train_repeat_time":self.repeat_time,
+            "num_nodes":len(h_node),
+            "max_similarity":np.round(heapq.nlargest(5,ngsim),decimals=2),
+            "min_similarity":np.round(heapq.nsmallest(5,ngsim),decimals=2),
+        }
+        df = pd.DataFrame([result])
+        save_simi = './gnn_res/tg/similarity/node_graph_simi_test1.csv'
+        if osp.exists(save_simi):
+            df.to_csv(save_simi, mode="a", header=False, index=False)
+        else:
+            df.to_csv(save_simi, index=False)
+
 
 if __name__ == "__main__":
     pass

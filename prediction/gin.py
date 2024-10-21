@@ -13,6 +13,8 @@ import os.path as osp
 import numpy as np
 from model import GNN
 from dataset_produce import SmilesRepeat
+from data_aug import csvcatg
+
 
 #from dataset import TestDevPolymer
 
@@ -190,15 +192,14 @@ def save_results(model, device, loader, filename="result.csv"):
     print(f"Predictions saved to {filename}")
 
 
-def test(args, device, model, task_name, batch_size):
-    # test on 10 different test sets
-    rep = [1,2,3,4,5,6,7,8,9,10]
+def test(args, device, model, task_name, test_rep):
+    # test on different test sets
     test_res = []
-    for r in rep:
+    for r in test_rep:
         dataset = PygPolymerDataset(name="prediction", root="data_pyg", set_name = "test", repeat_times=r,task_name=task_name)
         test_loader = DataLoader(
             dataset,
-            batch_size=batch_size,
+            batch_size=1,
             shuffle=False,
             num_workers=args.num_workers,
         )
@@ -212,51 +213,10 @@ def test(args, device, model, task_name, batch_size):
         test_res
     )
 
-def main_train(seed, args, device, model, optimizer, train_loader, valid_loader,check_name):
-
-    # Training settings
-    best_train, best_valid, best_params = None, None, None
-    best_epoch = 0
-    print("Start training...")
-
-    for epoch in range(args.epochs):
-        training(model, device, train_loader, optimizer)
-        valid_perf = validate(model, device, valid_loader)
-        if epoch == 0 or valid_perf['mae'] <  best_valid['mae']:
-            train_perf = validate(model, device, train_loader)
-            best_params = parameters_to_vector(model.parameters())
-
-            best_valid = valid_perf
-            best_train = train_perf
-
-            best_epoch = epoch
-        else:   
-            # save checkpoints
-            if epoch - best_epoch > args.patience:
-                break
-    state = {
-        "epoch": epoch,
-        "model": model.state_dict(),
-        "optimizer": optimizer.state_dict()
-    }
-    torch.save(state, check_name)
-
-    print('Finished training! Best validation results from epoch {}.'.format(best_epoch))
-    print('Model saved as {}.'.format(check_name))
-    print_info('train', best_train)
-    print_info('valid', best_valid)
-
-    vector_to_parameters(best_params, model.parameters())
-
-    return (
-        model,
-        best_train,
-        best_valid
-    )
 
 # obtain the oldest_checkpoint to replace
 def oldest_checkpoint(path):
-    names = glob.glob(os.path.join(path, "*.pt"))
+    names = glob.glob(osp.join(path, "*.pt"))
 
     if not names:
         return None
@@ -280,7 +240,7 @@ def oldest_checkpoint(path):
 
 
 def latest_checkpoint(path):
-    names = glob.glob(os.path.join(path, "*.pt"))
+    names = glob.glob(osp.join(path, "*.pt"))
 
     if not names:
         return None
@@ -305,7 +265,7 @@ def latest_checkpoint(path):
 #find a suitable path for saving checkpoint
 def find_checkname(path, max_to_keep=1):
 
-    checkpoints = glob.glob(os.path.join(path, "*.pt"))
+    checkpoints = glob.glob(osp.join(path, "*.pt"))
 
     if max_to_keep and len(checkpoints) >= max_to_keep:
         checkpoint = oldest_checkpoint(path)
@@ -317,7 +277,7 @@ def find_checkname(path, max_to_keep=1):
             checkpoint = latest_checkpoint(path)
             counter = int(checkpoint.rstrip(".pt").split("-")[-1]) + 1
 
-        checkpoint = os.path.join(path, "model-%d.pt" % counter)
+        checkpoint = osp.join(path, "model-%d.pt" % counter)
     return checkpoint
 
 def print_info(set_name, perf):
@@ -356,10 +316,8 @@ def save_prediction(model, device, test_feature, smiles_list, target_list, out_f
         f"Predictions saved to {out_file}, to be evaluated with weights {task_weight} for each task."
     )
 
-
+# hyperparameter tuning
 def hyper(repeat_times, model_type, task_name,drop_ratio,num_layer,lr,batch_size):
-    #ck_path = osp.join('checkpoints/',str(task_name),model_type,str(repeat_times))
-    # Training settings
     args = add_arg(model_type, drop_ratio, num_layer, lr, batch_size)
 
     device = (
@@ -368,11 +326,10 @@ def hyper(repeat_times, model_type, task_name,drop_ratio,num_layer,lr,batch_size
         else torch.device("cpu")
     )
 
-    ### automatic dataloading and splitting
-
-    train_dataset = PygPolymerDataset(name="prediction", root="data_pyg", task_name=task_name,repeat_times=repeat_times,set_name="train")
-    #split_idx = dataset.get_idx_split()
-    valid_dataset = PygPolymerDataset(name="prediction", root="data_pyg", task_name=task_name,repeat_times=repeat_times,set_name="valid")
+    ### automatic dataloading
+        
+    train_dataset = PygPolymerDataset(name="prediction", root="data_pyg", set_name="train",task_name=task_name,repeat_times=r,_use_concat_train = _use_concat_train)
+    valid_dataset = PygPolymerDataset(name="prediction", root="data_pyg", set_name="valid",task_name=task_name,repeat_times=r,_use_concat_train = _use_concat_train)
 
     train_loader = DataLoader(
         train_dataset,
@@ -386,10 +343,12 @@ def hyper(repeat_times, model_type, task_name,drop_ratio,num_layer,lr,batch_size
         shuffle=True,
         num_workers=args.num_workers,
     )
-
+    
+    # initiate model
     if args.gnn == "gin":
         model = GNN(
             gnn_type="gin",
+            repeat_time = train_dataset.repeat_times,
             num_task=train_dataset.num_tasks,
             num_layer=args.num_layer,
             emb_dim=args.emb_dim,
@@ -399,6 +358,7 @@ def hyper(repeat_times, model_type, task_name,drop_ratio,num_layer,lr,batch_size
     elif args.gnn == "gin-virtual":
         model = GNN(
             gnn_type="gin",
+            repeat_time = train_dataset.repeat_times,
             num_task=train_dataset.num_tasks,
             num_layer=args.num_layer,
             emb_dim=args.emb_dim,
@@ -408,6 +368,7 @@ def hyper(repeat_times, model_type, task_name,drop_ratio,num_layer,lr,batch_size
     elif args.gnn == "gcn":
         model = GNN(
             gnn_type="gcn",
+            repeat_time = train_dataset.repeat_times,
             num_task=train_dataset.num_tasks,
             num_layer=args.num_layer,
             emb_dim=args.emb_dim,
@@ -417,6 +378,7 @@ def hyper(repeat_times, model_type, task_name,drop_ratio,num_layer,lr,batch_size
     elif args.gnn == "gcn-virtual":
         model = GNN(
             gnn_type="gcn",
+            repeat_time = train_dataset.repeat_times,
             num_task=train_dataset.num_tasks,
             num_layer=args.num_layer,
             emb_dim=args.emb_dim,
@@ -425,7 +387,6 @@ def hyper(repeat_times, model_type, task_name,drop_ratio,num_layer,lr,batch_size
         ).to(device)
     else:
         raise ValueError("Invalid GNN type")
-
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     best_train, best_valid, best_params = None, None, None
@@ -438,8 +399,6 @@ def hyper(repeat_times, model_type, task_name,drop_ratio,num_layer,lr,batch_size
             train_perf = validate(model, device, train_loader)
             best_params = parameters_to_vector(model.parameters())
             best_valid = valid_perf
-            #print(best_valid)
-            #print(best_valid_lg)
             best_train = train_perf
             best_epoch = epoch
         elif epoch - best_epoch > args.patience:
@@ -449,7 +408,137 @@ def hyper(repeat_times, model_type, task_name,drop_ratio,num_layer,lr,batch_size
 
     return np.mean(best_valid['r2'])
 
-_use_ck = False
+def main(i, r, model_type, drop_ratio, num_layer, lr, batch_size, _use_concat_train):
+    args = add_arg(model_type, drop_ratio, num_layer, lr, batch_size)
+    device = (
+        torch.device("cuda:" + str(args.device))
+        if torch.cuda.is_available()
+        else torch.device("cpu")
+    )
+        
+        
+    train_dataset = PygPolymerDataset(name="prediction", root="data_pyg", set_name="train",task_name=task_name,repeat_times=r,_use_concat_train = _use_concat_train)
+    valid_dataset = PygPolymerDataset(name="prediction", root="data_pyg", set_name="valid",task_name=task_name,repeat_times=r,_use_concat_train = _use_concat_train)
+
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=args.batch_size,
+        shuffle=True,
+        num_workers=args.num_workers,
+    )
+    valid_loader = DataLoader(
+        valid_dataset,
+        batch_size=args.batch_size,
+        shuffle=True,
+        num_workers=args.num_workers,
+    )
+    
+    # initiate model
+    if args.gnn == "gin":
+        model = GNN(
+            gnn_type="gin",
+            repeat_time = train_dataset.repeat_times,
+            num_task=train_dataset.num_tasks,
+            num_layer=args.num_layer,
+            emb_dim=args.emb_dim,
+            drop_ratio=args.drop_ratio,
+            virtual_node=False,
+        ).to(device)
+    elif args.gnn == "gin-virtual":
+        model = GNN(
+            gnn_type="gin",
+            repeat_time = train_dataset.repeat_times,
+            num_task=train_dataset.num_tasks,
+            num_layer=args.num_layer,
+            emb_dim=args.emb_dim,
+            drop_ratio=args.drop_ratio,
+            virtual_node=True,
+        ).to(device)
+    elif args.gnn == "gcn":
+        model = GNN(
+            gnn_type="gcn",
+            repeat_time = train_dataset.repeat_times,
+            num_task=train_dataset.num_tasks,
+            num_layer=args.num_layer,
+            emb_dim=args.emb_dim,
+            drop_ratio=args.drop_ratio,
+            virtual_node=False,
+        ).to(device)
+    elif args.gnn == "gcn-virtual":
+        model = GNN(
+            gnn_type="gcn",
+            repeat_time = train_dataset.repeat_times,
+            num_task=train_dataset.num_tasks,
+            num_layer=args.num_layer,
+            emb_dim=args.emb_dim,
+            drop_ratio=args.drop_ratio,
+            virtual_node=True,
+        ).to(device)
+    else:
+        raise ValueError("Invalid GNN type")
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+    if not _use_concat_train:
+        ck_path = osp.join('checkpoints/',str(task_name),model_type,str(r))
+    else:
+        ck_path = osp.join('checkpoints/',str(task_name),model_type,'concat',str(r))
+    if not osp.exists(ck_path):
+        os.makedirs(ck_path)
+    ck_name = osp.join(ck_path,'model-{}.pt'.format(i))
+                    
+    
+    best_train, best_valid, best_params = None, None, None
+    if _use_ck:
+        # checkpoint
+        if not osp.exists(ck_name):
+            print("************************** No model found! **************************")
+        else:
+            state = torch.load(ck_name)
+            model.load_state_dict(state['model'])
+            optimizer.load_state_dict(state['optimizer'])
+    else:
+         # Training settings
+        best_epoch = 0
+        print("Start training...")
+
+        for epoch in range(args.epochs):
+            training(model, device, train_loader, optimizer)
+            valid_perf = validate(model, device, valid_loader)
+            if epoch == 0 or valid_perf['mae'] <  best_valid['mae']:
+                train_perf = validate(model, device, train_loader)
+                best_params = parameters_to_vector(model.parameters())
+
+                best_valid = valid_perf
+                best_train = train_perf
+
+                best_epoch = epoch
+            else:   
+                # save checkpoints
+                if epoch - best_epoch > args.patience:
+                    break
+        state = {
+            "epoch": epoch,
+            "model": model.state_dict(),
+            "optimizer": optimizer.state_dict()
+        }
+        torch.save(state, ck_name)
+
+        print('Finished training! Best validation results from epoch {}.'.format(best_epoch))
+        print('Model saved as {}.'.format(ck_name))
+        print_info('train', best_train)
+        print_info('valid', best_valid)
+
+        vector_to_parameters(best_params, model.parameters())
+    
+    return (
+        model,
+        args,
+        device,
+        best_train,
+        best_valid
+    )
+    
+_use_ck = True
 _use_param = True
 if __name__ == "__main__":
     import os
@@ -467,7 +556,10 @@ if __name__ == "__main__":
     df_p = pd.DataFrame(parameters)
     tasks = ['tg']
     for task_name in tasks:
-        rep_times = [11]
+        # train_rep can be a list of ints/lists, 
+        # int numbers means use single dataset, 
+        # list means use concatenate datasets of different repeating times
+        rep_times = [10]
         
         model_types = ["gin-virtual"]
 
@@ -501,14 +593,14 @@ if __name__ == "__main__":
                     }   
                     # save best parameters
                     df_p= pd.concat([df_p, pd.DataFrame([parameters_new])], ignore_index=True)
-                    if os.path.exists(param_csv_name):
+                    if osp.exists(param_csv_name):
                         df_p.to_csv(param_csv_name, mode="a", header=False, index=False)
                     else:
                         df_p.to_csv(param_csv_name, index=False)
                     set_up_param = True 
             # use params stored before     
             else:
-                if os.path.exists(param_csv_name):
+                if osp.exists(param_csv_name):
                     p = pd.read_csv(param_csv_name)
                     params = p[p['model_type']==model_type]
                     params = params[params['task']==task_name]
@@ -519,122 +611,52 @@ if __name__ == "__main__":
                 else:
                     print("****************** No parameters stored before ******************")
             
-            args = add_arg(model_type, drop_ratio, num_layer, lr, batch_size)
-            device = (
-                torch.device("cuda:" + str(args.device))
-                if torch.cuda.is_available()
-                else torch.device("cpu")
-            )
             for r in rep_times:
-                # dataset
-                raw_file = 'data_pyg/prediction/{}/{}_raw_{}/{}_raw.csv'.format(task_name,task_name,r,task_name)
-
-                if not os.path.exists(raw_file):
-                    dataproduce = SmilesRepeat(r, task_name, root='data_pyg/prediction/')
-                    dataproduce.repeat()
-                print("************************** Work on {} task use {} model of {} layers repeat {} times **************************".format(task_name,model_type,num_layer,r))
-                
-                #split_idx = dataset.get_idx_split()
-                train_dataset = PygPolymerDataset(name="prediction", root="data_pyg", set_name="train",task_name=task_name,repeat_times=r)
-                valid_dataset = PygPolymerDataset(name="prediction", root="data_pyg", set_name="valid",task_name=task_name,repeat_times=r)
-
-                train_loader = DataLoader(
-                    train_dataset,
-                    batch_size=args.batch_size,
-                    shuffle=True,
-                    num_workers=args.num_workers,
-                )
-                valid_loader = DataLoader(
-                    valid_dataset,
-                    batch_size=args.batch_size,
-                    shuffle=True,
-                    num_workers=args.num_workers,
-                )
-                
-                # initiate model
-                if args.gnn == "gin":
-                    model = GNN(
-                        gnn_type="gin",
-                        num_task=train_dataset.num_tasks,
-                        num_layer=args.num_layer,
-                        emb_dim=args.emb_dim,
-                        drop_ratio=args.drop_ratio,
-                        virtual_node=False,
-                    ).to(device)
-                elif args.gnn == "gin-virtual":
-                    model = GNN(
-                        gnn_type="gin",
-                        num_task=train_dataset.num_tasks,
-                        num_layer=args.num_layer,
-                        emb_dim=args.emb_dim,
-                        drop_ratio=args.drop_ratio,
-                        virtual_node=True,
-                    ).to(device)
-                elif args.gnn == "gcn":
-                    model = GNN(
-                        gnn_type="gcn",
-                        num_task=train_dataset.num_tasks,
-                        num_layer=args.num_layer,
-                        emb_dim=args.emb_dim,
-                        drop_ratio=args.drop_ratio,
-                        virtual_node=False,
-                    ).to(device)
-                elif args.gnn == "gcn-virtual":
-                    model = GNN(
-                        gnn_type="gcn",
-                        num_task=train_dataset.num_tasks,
-                        num_layer=args.num_layer,
-                        emb_dim=args.emb_dim,
-                        drop_ratio=args.drop_ratio,
-                        virtual_node=True,
-                    ).to(device)
+                if isinstance(r,list):
+                    _use_concat_train = True
+                    csvcatg(task_name,r)
+                    r = int('{}{}'.format(r[0],r[-1]))
                 else:
-                    raise ValueError("Invalid GNN type")
-                optimizer = optim.Adam(model.parameters(), lr=0.001)
-                
-                ck_path = osp.join('checkpoints/',str(task_name),model_type,str(r))
-                if not osp.exists(ck_path):
-                    os.makedirs(ck_path)
-                ck_name = osp.join(ck_path,'model-1.pt')
-                
-                # checkpoint
-                if _use_ck:
-                    if not osp.exists(ck_name):
-                        print("************************** No model found! **************************")
-                    else:
-                        state = torch.load(ck_name)
-                        model.load_state_dict(state['model'])
-                        optimizer.load_state_dict(state['optimizer'])
-
-                
-                                
+                    _use_concat_train = False
+                print("************************** Work on {} task use {} model of {} layers repeat {} times **************************".format(task_name,model_type,num_layer,r))
+                # information reserved for testing results
                 results = {
-                    "model": [],
-                    "train_repeat_time":[],
-                    "test_repeat_time":[],
-                    "task": [],
-                    "test_mae":[],
-                    "test_rmse":[],
-                    "test_lgmae":[],
-                    "test_r2":[],
-                }
+                        "model": [],
+                        "train_repeat_time":[],
+                        "test_repeat_time":[],
+                        "task": [],
+                        "test_mae":[],
+                        "test_rmse":[],
+                        "test_lgmae":[],
+                        "test_r2":[],
+                    }
 
                 df = pd.DataFrame(results)
-                # store different test sets on one model
-                df_save_name = "./gnn_res/tg/result_{}_{}.csv".format(model_type,r)
-                dfs = [df] * 10
+                test_rep = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+                num_t = len(test_rep)
+                dfs = [df] * num_t
                 for i in range(10):
                     seed_torch(i)
-                    ck_name = osp.join(ck_path,'model-{}.pt'.format(i))
-                    model, best_train, best_valid = main_train(i, args, device, model, optimizer, train_loader, valid_loader,ck_name)
-                    test_res = test(args, device, model, task_name, batch_size)
+                    model,args,device,best_train,best_valid = main(i, r, model_type, drop_ratio, num_layer, lr, batch_size, _use_concat_train)
+                    
+                    # store different test sets on one model
+                    if not _use_concat_train:
+                        df_save_name = "./gnn_res/{}/{}/repeat_{}.csv".format(task_name,model_type,r)
+                        res_csv_name = "./gnn_res/{}/{}/result.csv".format(task_name,model_type) 
+                    else:
+                        df_save_name = "./gnn_res/{}/{}/concat/repeat_{}.csv".format(task_name,model_type,r)
+                        res_csv_name = "./gnn_res/{}/{}/concat/result.csv".format(task_name,model_type) 
+                     
+                    # start testing
+                    print("Start testing...")
+                    test_res = test(args, device, model, task_name, test_rep)
                     for j in range(len(test_res)):
                         test_perf = test_res[j]
                         cur_df = dfs[j]
                         new_results = {
                             "model": model_type,
                             "train_repeat_time":r,
-                            "test_repeat_time":j+1,
+                            "test_repeat_time":test_rep[j],
                             "task": task_name,
                             "test_mae":test_perf["mae"],
                             "test_rmse":test_perf["rmse"],
@@ -642,12 +664,15 @@ if __name__ == "__main__":
                             "test_r2":test_perf["r2"],
                         }
                         new_df = pd.DataFrame([new_results])
-                        if os.path.exists(df_save_name):
+                        '''
+                        if osp.exists(df_save_name):
                             new_df.to_csv(df_save_name, mode="a", header=False, index=False)
                         else:
                             new_df.to_csv(df_save_name, index=False)
+                        '''
                         cur_df = pd.concat([cur_df, new_df], ignore_index=True)
                         dfs[j] = cur_df
+
                 for df in dfs:
                     # Calculate mean and std, and format them as "mean±std".
                     summary_cols = ["model", "train_repeat_time","test_repeat_time", "task"]
@@ -662,9 +687,8 @@ if __name__ == "__main__":
                         col_name = 'test_'+metric
                         df_summary[col_name] = df_mean[col_name].astype(str) + "±" + df_std[col_name].astype(str)
 
-                    # Save and print the summary DataFrame.
-                    res_csv_name = "./gnn_res/{}/result_{}_{}.csv".format(task_name,model_type,task_name)     
-                    if os.path.exists(res_csv_name):
+                    # Save and print the summary DataFrame.    
+                    if osp.exists(res_csv_name):
                         df_summary.to_csv(res_csv_name, mode="a", header=False, index=False)
                     else:
                         df_summary.to_csv(res_csv_name, index=False)
