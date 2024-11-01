@@ -1,0 +1,6 @@
+Start training...
+Finished training of 0th model of 13 repeat times! Best validation results from epoch 87.
+Model saved as ./checkpoints/tg/transformer/concat/13/0.pt.
+train		mae: 17.4114    	rmse: 27.3992    	lgmae: 0.2623     	r2: 0.9414     	
+valid		mae: 29.7978    	rmse: 44.9435    	lgmae: 0.3845     	r2: 0.8316     	
+Finished training for all 1 models of 13 repeat times!

@@ -1,0 +1,13 @@
+Start training...
+Finished training of 0th model of 18 repeat times! Best validation results from epoch 30.
+Model saved as ./checkpoints/tg/transformer/concat/18/0.pt.
+train		mae: 17.9664    	rmse: 28.7695    	lgmae: 0.2507     	r2: 0.9354     	
+valid		mae: 29.8872    	rmse: 44.6075    	lgmae: 0.3761     	r2: 0.8341     	
+Start training...
+Finished training of 1th model of 18 repeat times! Best validation results from epoch 30.
+Model saved as ./checkpoints/tg/transformer/concat/18/1.pt.
+train		mae: 16.3016    	rmse: 26.3489    	lgmae: 0.2417     	r2: 0.9458     	
+valid		mae: 29.4478    	rmse: 44.2080    	lgmae: 0.3674     	r2: 0.8370     	
+Start training...
+open: No such file or directory
+open: No such file or directory

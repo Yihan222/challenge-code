@@ -1,0 +1,47 @@
+Start training...
+Finished training of 0th model of 7 repeat times! Best validation results from epoch 139.
+Model saved as ./checkpoints/tg/transformer/7/0.pt.
+train		mae: 18.6543    	rmse: 29.2094    	lgmae: 0.2702     	r2: 0.9334     	
+valid		mae: 29.9320    	rmse: 43.8602    	lgmae: 0.3849     	r2: 0.8396     	
+Start training...
+Finished training of 1th model of 7 repeat times! Best validation results from epoch 200.
+Model saved as ./checkpoints/tg/transformer/7/1.pt.
+train		mae: 15.6173    	rmse: 25.0351    	lgmae: 0.2401     	r2: 0.9511     	
+valid		mae: 29.5438    	rmse: 44.3211    	lgmae: 0.3687     	r2: 0.8362     	
+Start training...
+Finished training of 2th model of 7 repeat times! Best validation results from epoch 6.
+Model saved as ./checkpoints/tg/transformer/7/2.pt.
+train		mae: 95.2929    	rmse: 113.2796   	lgmae: 0.9600     	r2: -0.0015    	
+valid		mae: 91.6835    	rmse: 110.0465   	lgmae: 0.9047     	r2: -0.0098    	
+Start training...
+Finished training of 3th model of 7 repeat times! Best validation results from epoch 287.
+Model saved as ./checkpoints/tg/transformer/7/3.pt.
+train		mae: 12.9521    	rmse: 22.6921    	lgmae: 0.1974     	r2: 0.9598     	
+valid		mae: 28.8914    	rmse: 42.7501    	lgmae: 0.3595     	r2: 0.8476     	
+Start training...
+Finished training of 4th model of 7 repeat times! Best validation results from epoch 240.
+Model saved as ./checkpoints/tg/transformer/7/4.pt.
+train		mae: 14.4120    	rmse: 23.8716    	lgmae: 0.2253     	r2: 0.9555     	
+valid		mae: 29.5071    	rmse: 43.9395    	lgmae: 0.3606     	r2: 0.8390     	
+Finished training for all 5 models of 7 repeat times!
+Start training...
+Finished training of 0th model of 8 repeat times! Best validation results from epoch 172.
+Model saved as ./checkpoints/tg/transformer/8/0.pt.
+train		mae: 16.9430    	rmse: 27.2530    	lgmae: 0.2668     	r2: 0.9420     	
+valid		mae: 29.0721    	rmse: 43.7498    	lgmae: 0.3698     	r2: 0.8404     	
+Start training...
+Finished training of 1th model of 8 repeat times! Best validation results from epoch 285.
+Model saved as ./checkpoints/tg/transformer/8/1.pt.
+train		mae: 32.9380    	rmse: 46.8118    	lgmae: 0.4252     	r2: 0.8290     	
+valid		mae: 35.8712    	rmse: 50.4013    	lgmae: 0.4258     	r2: 0.7882     	
+Start training...
+Finished training of 2th model of 8 repeat times! Best validation results from epoch 11.
+Model saved as ./checkpoints/tg/transformer/8/2.pt.
+train		mae: 83.2360    	rmse: 99.4662    	lgmae: 1.0114     	r2: 0.2278     	
+valid		mae: 79.7984    	rmse: 96.2042    	lgmae: 0.9417     	r2: 0.2283     	
+Start training...
+Finished training of 3th model of 8 repeat times! Best validation results from epoch 87.
+Model saved as ./checkpoints/tg/transformer/8/3.pt.
+train		mae: 23.9440    	rmse: 36.1917    	lgmae: 0.3442     	r2: 0.8978     	
+valid		mae: 29.9301    	rmse: 43.8075    	lgmae: 0.3834     	r2: 0.8400     	
+Start training...

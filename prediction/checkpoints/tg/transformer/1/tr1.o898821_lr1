@@ -1,0 +1,162 @@
+Start training...
+Finished training of 0th model of 3 repeat times! Best validation results from epoch 12.
+Model saved as ./checkpoints/tg/transformer/3/0.pt.
+train		mae: 84.0895    	rmse: 100.4878   	lgmae: 1.1520     	r2: 0.2119     	
+valid		mae: 81.6466    	rmse: 97.8234    	lgmae: 1.0852     	r2: 0.2021     	
+Start training...
+Finished training of 1th model of 3 repeat times! Best validation results from epoch 3.
+Model saved as ./checkpoints/tg/transformer/3/1.pt.
+train		mae: 83.7384    	rmse: 100.0528   	lgmae: 1.0930     	r2: 0.2187     	
+valid		mae: 79.9629    	rmse: 96.3977    	lgmae: 1.0131     	r2: 0.2252     	
+Start training...
+Finished training of 2th model of 3 repeat times! Best validation results from epoch 1.
+Model saved as ./checkpoints/tg/transformer/3/2.pt.
+train		mae: 88.8110    	rmse: 108.1276   	lgmae: 1.3635     	r2: 0.0875     	
+valid		mae: 88.5276    	rmse: 109.2660   	lgmae: 1.3482     	r2: 0.0045     	
+Start training...
+Finished training of 3th model of 3 repeat times! Best validation results from epoch 28.
+Model saved as ./checkpoints/tg/transformer/3/3.pt.
+train		mae: 95.3888    	rmse: 113.2011   	lgmae: 0.9579     	r2: -0.0002    	
+valid		mae: 91.6220    	rmse: 109.7317   	lgmae: 0.9018     	r2: -0.0040    	
+Start training...
+Finished training of 4th model of 3 repeat times! Best validation results from epoch 6.
+Model saved as ./checkpoints/tg/transformer/3/4.pt.
+train		mae: 83.6770    	rmse: 99.9028    	lgmae: 0.9831     	r2: 0.2210     	
+valid		mae: 79.8392    	rmse: 96.1483    	lgmae: 0.9161     	r2: 0.2292     	
+Finished training for all 5 models of 3 repeat times!
+Start training...
+Finished training of 0th model of 4 repeat times! Best validation results from epoch 4.
+Model saved as ./checkpoints/tg/transformer/4/0.pt.
+train		mae: 80.9446    	rmse: 97.9672    	lgmae: 1.2587     	r2: 0.2509     	
+valid		mae: 77.7294    	rmse: 94.4588    	lgmae: 1.1173     	r2: 0.2560     	
+Start training...
+Finished training of 1th model of 4 repeat times! Best validation results from epoch 1.
+Model saved as ./checkpoints/tg/transformer/4/1.pt.
+train		mae: 82.6844    	rmse: 102.0403   	lgmae: 1.9709     	r2: 0.1873     	
+valid		mae: 84.5391    	rmse: 103.2699   	lgmae: 1.9589     	r2: 0.1108     	
+Start training...
+Finished training of 2th model of 4 repeat times! Best validation results from epoch 64.
+Model saved as ./checkpoints/tg/transformer/4/2.pt.
+train		mae: 85.1247    	rmse: 101.7722   	lgmae: 1.2131     	r2: 0.1916     	
+valid		mae: 80.9043    	rmse: 97.5460    	lgmae: 1.1249     	r2: 0.2066     	
+Start training...
+Finished training of 3th model of 4 repeat times! Best validation results from epoch 75.
+Model saved as ./checkpoints/tg/transformer/4/3.pt.
+train		mae: 37.1024    	rmse: 51.5745    	lgmae: 0.5137     	r2: 0.7924     	
+valid		mae: 37.1784    	rmse: 51.2447    	lgmae: 0.4790     	r2: 0.7810     	
+Start training...
+Finished training of 4th model of 4 repeat times! Best validation results from epoch 2.
+Model saved as ./checkpoints/tg/transformer/4/4.pt.
+train		mae: 84.1747    	rmse: 100.3329   	lgmae: 1.0884     	r2: 0.2143     	
+valid		mae: 80.4951    	rmse: 96.7764    	lgmae: 1.0208     	r2: 0.2191     	
+Finished training for all 5 models of 4 repeat times!
+Start training...
+Finished training of 0th model of 5 repeat times! Best validation results from epoch 3.
+Model saved as ./checkpoints/tg/transformer/5/0.pt.
+train		mae: 58.8414    	rmse: 76.5821    	lgmae: 1.0340     	r2: 0.5423     	
+valid		mae: 57.8285    	rmse: 74.5240    	lgmae: 0.9713     	r2: 0.5369     	
+Start training...
+Finished training of 1th model of 5 repeat times! Best validation results from epoch 8.
+Model saved as ./checkpoints/tg/transformer/5/1.pt.
+train		mae: 84.4413    	rmse: 100.8637   	lgmae: 1.1462     	r2: 0.2060     	
+valid		mae: 82.0146    	rmse: 98.2621    	lgmae: 1.0785     	r2: 0.1949     	
+Start training...
+Finished training of 2th model of 5 repeat times! Best validation results from epoch 5.
+Model saved as ./checkpoints/tg/transformer/5/2.pt.
+train		mae: 85.4252    	rmse: 105.2806   	lgmae: 0.9188     	r2: 0.1349     	
+valid		mae: 82.5603    	rmse: 102.2911   	lgmae: 0.8631     	r2: 0.1275     	
+Start training...
+Finished training of 3th model of 5 repeat times! Best validation results from epoch 5.
+Model saved as ./checkpoints/tg/transformer/5/3.pt.
+train		mae: 54.1786    	rmse: 70.1804    	lgmae: 0.7350     	r2: 0.6156     	
+valid		mae: 54.6106    	rmse: 69.8579    	lgmae: 0.6995     	r2: 0.5931     	
+Start training...
+Finished training of 4th model of 5 repeat times! Best validation results from epoch 13.
+Model saved as ./checkpoints/tg/transformer/5/4.pt.
+train		mae: 84.4399    	rmse: 100.8817   	lgmae: 1.1669     	r2: 0.2057     	
+valid		mae: 82.0333    	rmse: 98.3265    	lgmae: 1.1004     	r2: 0.1938     	
+Finished training for all 5 models of 5 repeat times!
+Start training...
+Finished training of 0th model of 6 repeat times! Best validation results from epoch 184.
+Model saved as ./checkpoints/tg/transformer/6/0.pt.
+train		mae: 16.5299    	rmse: 26.0610    	lgmae: 0.2436     	r2: 0.9470     	
+valid		mae: 28.6173    	rmse: 41.8520    	lgmae: 0.3582     	r2: 0.8539     	
+Start training...
+Finished training of 1th model of 6 repeat times! Best validation results from epoch 1.
+Model saved as ./checkpoints/tg/transformer/6/1.pt.
+train		mae: 79.2313    	rmse: 99.0917    	lgmae: 1.5882     	r2: 0.2336     	
+valid		mae: 78.6570    	rmse: 98.4819    	lgmae: 1.4946     	r2: 0.1913     	
+Start training...
+Finished training of 2th model of 6 repeat times! Best validation results from epoch 2.
+Model saved as ./checkpoints/tg/transformer/6/2.pt.
+train		mae: 70.7967    	rmse: 87.9244    	lgmae: 0.8353     	r2: 0.3966     	
+valid		mae: 71.4004    	rmse: 87.3747    	lgmae: 0.8065     	r2: 0.3634     	
+Start training...
+Finished training of 3th model of 6 repeat times! Best validation results from epoch 22.
+Model saved as ./checkpoints/tg/transformer/6/3.pt.
+train		mae: 76.5493    	rmse: 96.5265    	lgmae: 0.9980     	r2: 0.2728     	
+valid		mae: 74.4023    	rmse: 93.6614    	lgmae: 0.9495     	r2: 0.2685     	
+Start training...
+Finished training of 4th model of 6 repeat times! Best validation results from epoch 4.
+Model saved as ./checkpoints/tg/transformer/6/4.pt.
+train		mae: 84.5003    	rmse: 100.9634   	lgmae: 1.1840     	r2: 0.2044     	
+valid		mae: 81.9034    	rmse: 98.0918    	lgmae: 1.1037     	r2: 0.1977     	
+Finished training for all 5 models of 6 repeat times!
+Start training...
+Traceback (most recent call last):
+  File "/scratch365/yzhu25/challenge-code/prediction/run.py", line 31, in <module>
+    t.main()
+  File "/scratch365/yzhu25/challenge-code/prediction/tsfm_main.py", line 270, in main
+    model,device,best_train,best_valid = self.model_seed(i, train_loader, valid_loader)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch365/yzhu25/challenge-code/prediction/tsfm_main.py", line 199, in model_seed
+    self.training(model, train_loader, optimizer, device)
+  File "/scratch365/yzhu25/challenge-code/prediction/tsfm_main.py", line 83, in training
+    pred = model(batch_x).squeeze()
+           ^^^^^^^^^^^^^^
+  File "/afs/crc.nd.edu/user/y/yzhu25/.conda/envs/py311/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/afs/crc.nd.edu/user/y/yzhu25/.conda/envs/py311/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch365/yzhu25/challenge-code/prediction/transformer.py", line 147, in forward
+    enc_outputs = self.Encoder(enc_inputs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/afs/crc.nd.edu/user/y/yzhu25/.conda/envs/py311/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/afs/crc.nd.edu/user/y/yzhu25/.conda/envs/py311/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch365/yzhu25/challenge-code/prediction/transformer.py", line 131, in forward
+    enc_outputs, enc_self_attn = layer(enc_outputs, enc_self_attn_mask)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/afs/crc.nd.edu/user/y/yzhu25/.conda/envs/py311/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/afs/crc.nd.edu/user/y/yzhu25/.conda/envs/py311/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch365/yzhu25/challenge-code/prediction/transformer.py", line 109, in forward
+    enc_outputs, attn = self.enc_self_attn(enc_inputs, enc_inputs, enc_inputs,    # enc_outputs: [batch_size, src_len, hidden_size], 
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/afs/crc.nd.edu/user/y/yzhu25/.conda/envs/py311/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/afs/crc.nd.edu/user/y/yzhu25/.conda/envs/py311/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch365/yzhu25/challenge-code/prediction/transformer.py", line 82, in forward
+    context, attn = ScaledDotProductAttention()(Q, K, V, attn_mask)          # context: [batch_size, n_heads, len_q, d_v]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/afs/crc.nd.edu/user/y/yzhu25/.conda/envs/py311/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/afs/crc.nd.edu/user/y/yzhu25/.conda/envs/py311/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch365/yzhu25/challenge-code/prediction/transformer.py", line 59, in forward
+    scores = torch.matmul(Q, K.transpose(-1, -2)) / np.sqrt(d_k)   # scores : [batch_size, n_heads, len_q, len_k]
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
+torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 4.55 GiB. GPU 0 has a total capacty of 47.53 GiB of which 4.01 GiB is free. Including non-PyTorch memory, this process has 43.51 GiB memory in use. Of the allocated memory 38.74 GiB is allocated by PyTorch, and 4.46 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF

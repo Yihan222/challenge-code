@@ -1,0 +1,165 @@
+start fitting t-SNE
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+finish t-SNE fitting!
+/scratch365/yzhu25/challenge-code/prediction/tsne.py:148: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  df = pd.concat([df, new_df], ignore_index=True)
+start fitting t-SNE
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+finish t-SNE fitting!
+/scratch365/yzhu25/challenge-code/prediction/tsne.py:148: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  df = pd.concat([df, new_df], ignore_index=True)
+start fitting t-SNE
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+finish t-SNE fitting!
+/scratch365/yzhu25/challenge-code/prediction/tsne.py:148: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  df = pd.concat([df, new_df], ignore_index=True)
+start fitting t-SNE
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+finish t-SNE fitting!
+/scratch365/yzhu25/challenge-code/prediction/tsne.py:148: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  df = pd.concat([df, new_df], ignore_index=True)
+start fitting t-SNE
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+finish t-SNE fitting!
+/scratch365/yzhu25/challenge-code/prediction/tsne.py:148: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  df = pd.concat([df, new_df], ignore_index=True)
+start fitting t-SNE
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+finish t-SNE fitting!
+/scratch365/yzhu25/challenge-code/prediction/tsne.py:148: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  df = pd.concat([df, new_df], ignore_index=True)
+start fitting t-SNE
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+finish t-SNE fitting!
+/scratch365/yzhu25/challenge-code/prediction/tsne.py:148: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  df = pd.concat([df, new_df], ignore_index=True)
+start fitting t-SNE
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+finish t-SNE fitting!
+/scratch365/yzhu25/challenge-code/prediction/tsne.py:148: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  df = pd.concat([df, new_df], ignore_index=True)
+start fitting t-SNE
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+finish t-SNE fitting!
+/scratch365/yzhu25/challenge-code/prediction/tsne.py:148: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  df = pd.concat([df, new_df], ignore_index=True)
+start fitting t-SNE
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+finish t-SNE fitting!
+/scratch365/yzhu25/challenge-code/prediction/tsne.py:148: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  df = pd.concat([df, new_df], ignore_index=True)
+start fitting t-SNE
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+finish t-SNE fitting!
+/scratch365/yzhu25/challenge-code/prediction/tsne.py:148: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  df = pd.concat([df, new_df], ignore_index=True)
+start fitting t-SNE
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********
+********** Embeddings Loaded ! **********

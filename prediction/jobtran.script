@@ -4,13 +4,12 @@
 
 #$ -M zhuyihan5023@outlook.com   # Email address for job notification
 #$ -m abe            # Send mail when job begins, ends and aborts
-#$ -q gpu@qa-l40s-005
+#$ -q gpu@ta-a6k-001
 #$ -l gpu=1
-#$ -N rnn2
+#$ -N tr1
 
 conda activate py311
 cd ../../../../../scratch365/yzhu25/challenge-code/prediction/
 fsync $SGE_STDOUT_PATH &
-export LD_LIBRARY_PATH=/afs/crc.nd.edu/user/y/yzhu25/.conda/envs/py311/lib/:$LD_LIBRARY_PATH
 #python cuda.py
-python runrnn.py
+python -u run.py
