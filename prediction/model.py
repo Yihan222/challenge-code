@@ -1,8 +1,10 @@
 import torch
 import torch.nn as nn
+import os
 import os.path as osp
 import numpy as np
 import heapq
+import sys
 import pandas as pd
 from torch_geometric.nn import (
     global_add_pool,
@@ -45,6 +47,7 @@ class GNN(torch.nn.Module):
     def __init__(
         self,
         num_task,
+        test,
         repeat_time,
         num_layer=5,
         emb_dim=300,
@@ -61,7 +64,7 @@ class GNN(torch.nn.Module):
         """
 
         super(GNN, self).__init__()
-
+        self.test = test
         self.repeat_time = repeat_time
         self.num_layer = num_layer
         self.drop_ratio = drop_ratio
@@ -121,8 +124,25 @@ class GNN(torch.nn.Module):
         h_graph = self.pool(h_node, batched_data.batch)
         #self.similarity(h_node,h_graph)
         h_graph = torch.cat([h_graph, batched_data.fp.type_as(h_graph)], dim=1)
+        #self.save_h_graph(h_graph)
         return self.predictor(h_graph)
+    
+    def save_h_graph(self, h_graph):
+        save_path = './embeddings/h_graph/gin-virtual/train/{}'.format(self.repeat_time) # the number here is the test repeat time
+        if not osp.exists(save_path):
+            os.makedirs(save_path)
+        save_name = osp.join(save_path,'{}.npy'.format(self.test))
+        h = h_graph.cpu()
+        h = h[0].numpy()
 
+        try:
+            preh = np.load(save_name)
+            newh = np.vstack((preh, h))
+            np.save(save_name, newh)
+        except IOError:
+            # if not such file
+            np.save(save_name, h)
+        
     # compare similarity of single node representation in the graph with the graph representation
     def similarity(self, h_node, h_graph):
         ngsim = []
@@ -139,11 +159,12 @@ class GNN(torch.nn.Module):
             "min_similarity":np.round(heapq.nsmallest(5,ngsim),decimals=2),
         }
         df = pd.DataFrame([result])
-        save_simi = './gnn_res/tg/similarity/node_graph_simi_test1.csv'
-        if osp.exists(save_simi):
-            df.to_csv(save_simi, mode="a", header=False, index=False)
+        save_name = './gnn_res/tg/similarity/node_graph_simi_test1.csv'
+        if osp.exists(save_name):
+            df.to_csv(save_name, mode="a", header=False, index=False)
         else:
-            df.to_csv(save_simi, index=False)
+            df.to_csv(save_name, index=False)
+        print('****** {} saved! ******'.format(save_name))
 
 
 if __name__ == "__main__":

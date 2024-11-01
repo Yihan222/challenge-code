@@ -1,17 +1,24 @@
 import pandas as pd
 import os
+import torch
 import pickle
 import numpy as np
 import gzip
 import os.path as osp
 from dataset_produce import SmilesRepeat
+from configparser import ConfigParser
 
-char_lexicon = ['#','%','(',')','*','+','-','0','1','2','3','4','5','6','7','8','9','=','B','C','F','G','H','I','K','L','N','O','P','S','T','Z','[',']','a','b','c','d','e','i','l','n','o','r','s','/','\\']
+char_lexicon = ['%','(',')','*','+','-','0','1','2','3','4','5','6','7','8','9','=','B','C','F','G','H','I','K','L','N','O','P','S','T','Z','[',']','a','b','c','d','e','i','l','n','o','r','s','/','\\','#']
 char_dic = {'#': 0, '%': 1, '(': 2, ')': 3, '*': 4, '+': 5, '-': 6, '0': 7, '1': 8, '2': 9, '3': 10, '4': 11, '5': 12, '6': 13, '7': 14, '8': 15, '9': 16, '=': 17, 'B': 18, 'C': 19, 'F': 20, 'G': 21, 'H': 22, 'I': 23, 'K': 24, 'L': 25, 'N': 26, 'O': 27, 'P': 28, 'S': 29, 'T': 30, 'Z': 31, '[': 32, ']': 33, 'a': 34, 'b': 35, 'c': 36, 'd': 37, 'e': 38, 'i': 39, 'l': 40, 'n': 41, 'o': 42, 'r': 43, 's': 44,'/':45,'\\':46}
-test_file_path = './data_pyg/prediction/tg/1/split/random/test.csv.gz'
-valid_file_path = './data_pyg/prediction/tg/1/split/random/valid.csv.gz'
-train_file_path = './data_pyg/prediction/tg/1/split/random/train.csv.gz'
-data_root = './data_pyg/prediction/'
+
+
+config = ConfigParser()
+config.read('config.ini')
+data_root = config.get('data','data_root')
+test_file_path = config.get('data','test_file_path')
+valid_file_path = config.get('data','valid_file_path')
+train_file_path = config.get('data','train_file_path')
+max_length_dic = config.get('data','max_length_dic')
 
 def tok(poly_str):
     res = [char_dic[char] for char in poly_str]
@@ -19,6 +26,7 @@ def tok(poly_str):
 
 def rnntokenize(task, rep):
     max_ls = []
+    # store the dictionary of max token length
     for r in rep:
         dir_name = osp.join(data_root,task,str(r))
         tok_file = osp.join(dir_name,"raw.pkl")
@@ -36,7 +44,7 @@ def rnntokenize(task, rep):
                 res = tok(poly)
                 res += [0] * (max_l-len(res))
                 toks.append(res)
-            max_ls.append(max_l)
+            max_ls.append([r,max_l])
             df = pd.DataFrame({'tk':toks,'tg':polymer_df['tg']})
             
             with open(tok_file,'wb') as file:
@@ -44,8 +52,15 @@ def rnntokenize(task, rep):
             print("********************************* Tokens Saved! *********************************")
         else:
             print("********************************* Token File Existed! *********************************")
+    '''
+    max_ls_df = pd.DataFrame(columns=['repeat_time','max_token_len'],data=max_ls)
+    if osp.exists(max_length_dic):
+        max_ls_df.to_csv(max_length_dic, mode="a", header=False, index=False)
+    else:
+        max_ls_df.to_csv(max_length_dic, index=False)
+    '''
 
-def rsplit(task,rep):
+def rsplit(task, rep):
     # Read the CSV files
     test_idx = read_gzipped_csv(test_file_path).values.T[0]
     valid_idx = read_gzipped_csv(valid_file_path).values.T[0]
@@ -77,11 +92,11 @@ def rsplit(task,rep):
                 print("*********************** {} Existed! ************************".format(tok_file))
 
 
-def csvcatr(task,rep):
+def csvcatr(task, rep):
     # concatenate train or valid set
     r_name = '{}{}'.format(rep[0],rep[-1])
     for s in ['train','valid']:
-        dir_name = osp.join(data_root,task,'concat',r_name,s)
+        dir_name = osp.join(data_root,task,'concat2',r_name,s)
         if not osp.exists(dir_name):
             os.makedirs(dir_name)
         des = osp.join(dir_name,'{}.pkl'.format(s))
@@ -121,7 +136,7 @@ def read_gzipped_csv(file_path):
     with gzip.open(file_path, 'rt') as f:
         return pd.read_csv(f, header=None)
 
-def gsplit(task,rep):
+def gsplit(task, rep):
     # Read the CSV files
     test_idx = read_gzipped_csv(test_file_path).values.T[0]
     valid_idx = read_gzipped_csv(valid_file_path).values.T[0]
@@ -151,10 +166,10 @@ def gsplit(task,rep):
 
 
 
-def csvcatg(task,rep):
+def csvcatg(task, rep):
     r_name = '{}{}'.format(rep[0],rep[-1])
     for s in ['train','valid']:
-        dir_name = osp.join(data_root,task,'concat',r_name,s)
+        dir_name = osp.join(data_root,task,'concat2',r_name,s)
         if not osp.exists(dir_name):
             os.makedirs(dir_name)
         des = osp.join(dir_name,'{}.csv'.format(s))
@@ -172,27 +187,16 @@ def csvcatg(task,rep):
             print("*********************** {} Existed! ************************".format(des))
 
  
-
-
-
 def testmerge(a,b):
+    '''
+    target: test the intersection numbers of 2 arrays
+    usage: testmerge(df1,df2)
+    '''
     intersection = pd.merge(a, b, how='inner')
     # Count the number of intersecting lines
     intersection_count = intersection.shape[0]
     return intersection_count    
 
 if __name__ == '__main__':
-    '''
-    #print(testmerge(df1,df2))
-    rep = [1,2,3,4,5,6,7,8,9,10]
-    task = 'tg'
-    test_1 = './data_pyg/prediction/tg/tg_raw_1/tg_test_tk.npy'
-    t1 = np.load(test_1)
-    test_2 = './data_pyg/prediction/tg/tg_raw_2/tg_test_tk.npy'
-    t2 = np.load(test_2)
-    print(t1[0].tolist())
-    print(t2[0].tolist())
-    #print(testmerge(test,train))
-    '''
     pass
     
